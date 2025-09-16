@@ -1,0 +1,125 @@
+.quiz-topic-page {
+  padding: 2rem;
+  min-height: 100vh;
+  background: linear-gradient(to right, var(--bg), var(--bg-alt));
+  color: var(--text);
+  transition: background 0.4s ease, color 0.4s ease;
+  font-family: 'Poppins', sans-serif;
+}
+
+.quiz-topic-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 0rem;
+}
+
+.animate-heading {
+  font-size: 2.5rem;
+  color: var(--accent);
+  animation: slideDown 0.8s ease forwards;
+  opacity: 0;
+}
+
+/* ✅ Final Fixed Top-Right Button with Animation */
+.back-to-topic-button {
+  top: 2rem;
+  right: 2rem;
+  background: var(--accent);
+  color: var(--btn-text);
+  border: none;
+  padding: 0.7rem 1.3rem;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.3s ease, transform 0.2s ease;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.1);
+  opacity: 0;
+  animation: slideUp 1s ease-out forwards;
+  animation-delay: 0.6s;
+  z-index: 1000;
+}
+
+.back-to-topic-button:hover {
+  background: var(--accent-hover);
+  transform: translateY(-2px);
+}
+
+/* Optional: hide old button if not used anymore */
+.back-button {
+  display: none;
+}
+
+.algo-card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 2rem;
+  padding: 2rem 1rem;
+}
+
+.algo-card {
+  background: var(--card);
+  border: 2px solid var(--card-border);
+  padding: 2rem;
+  border-radius: 12px;
+  cursor: pointer;
+  text-align: center;
+  transform: translateY(20px);
+  opacity: 0;
+  transition: all 0.4s ease;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+}
+
+.algo-card:hover {
+  transform: translateY(-6px) scale(1.03);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.15);
+}
+
+.dark .algo-card:hover {
+  box-shadow: 0 12px 32px rgba(0, 229, 255, 0.15);
+}
+
+.algo-card.fade-in {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Heading Animation */
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Back Button Slide-Up Animation */
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ✅ Mobile Responsiveness */
+@media (max-width: 600px) {
+  .back-to-topic-button {
+    top: 0.5rem;
+    right: 0.5rem;
+    padding: 0.6rem 1rem;
+    font-size: 0.85rem;
+  }
+
+  .animate-heading {
+    font-size: 2rem;
+  }
+}

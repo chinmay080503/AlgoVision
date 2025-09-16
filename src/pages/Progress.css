@@ -1,0 +1,447 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
+
+.progress-container {
+  --bg: #fdfbfb;
+  --bg-alt: #ebedee;
+  --text: #1c1c1c;
+  --card: #ffffff;
+  --card-border: #dcdcdc;
+  --accent: #004e92;
+  --accent-hover: #003366;
+  --btn-text: #ffffff;
+  --error: #e63946;
+  --success: #2a9d8f;
+  --warning: #e9c46a;
+  
+  position: relative;
+  padding: 2rem;
+  min-height: 100vh;
+  background: linear-gradient(to right, var(--bg), var(--bg-alt));
+  transition: background 0.3s ease, color 0.3s ease;
+  font-family: 'Poppins', sans-serif;
+}
+
+.dark .progress-container {
+  --bg: #1e1e2f;
+  --bg-alt: #121218;
+  --text: #eeeeee;
+  --card: #252534;
+  --card-border: #333646;
+  --accent: #00e5ff;
+  --accent-hover: #00bcd4;
+  --btn-text: #121212;
+  --error: #ff6b6b;
+  --success: #4ecdc4;
+  --warning: #ffe66d;
+}
+
+/* Page Animation */
+.progress-container {
+  opacity: 0;
+  transform: translateY(40px);
+  animation: pageSlideIn 0.8s ease-out forwards;
+}
+
+@keyframes pageSlideIn {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Header Styles */
+.progress-header-container {
+  width: 100%;
+  margin-bottom: 3rem;
+}
+
+.progress-header h2 {
+  font-size: 2.5rem;
+  color: var(--accent);
+  opacity: 0;
+  animation: slideUp 1s ease-out forwards;
+  text-align: left;
+  margin: 0;
+}
+
+.back-to-dashboard-button {
+  position: fixed;
+  top: 2rem;
+  right: 2rem;
+  background: var(--accent);
+  color: var(--btn-text);
+  border: none;
+  padding: 0.7rem 1.3rem;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.3s ease, transform 0.2s ease;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.1);
+  opacity: 0;
+  animation: slideUp 1s ease-out forwards;
+  animation-delay: 0.6s;
+  z-index: 1000;
+}
+
+.back-to-dashboard-button:hover {
+  background: var(--accent-hover);
+  transform: translateY(-2px);
+}
+
+.algo-selector {
+  margin-bottom: 2rem;
+  opacity: 0;
+  transform: translateY(20px);
+  animation: fadeIn 0.6s ease 0.2s forwards;
+}
+
+.algo-selector h2 {
+  margin-bottom: 1rem;
+  color: var(--text);
+}
+
+.algo-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.8rem;
+}
+
+.algo-buttons button {
+  background: var(--bg-alt);
+  color: var(--text);
+  border: none;
+  padding: 0.6rem 1.2rem;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.algo-buttons button.active {
+  background: var(--accent);
+  color: var(--btn-text);
+}
+
+.algo-buttons button:hover:not(.active) {
+  background: rgba(0, 87, 183, 0.1);
+}
+
+/* Stats Grid */
+.progress-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 2rem;
+  margin-bottom: 3rem;
+  opacity: 0;
+  transform: translateY(20px);
+  animation: fadeIn 0.6s ease 0.4s forwards;
+}
+
+.stat-card {
+  background: var(--card);
+  border: 2px solid var(--card-border);
+  border-radius: 12px;
+  padding: 2rem;
+  text-align: center;
+  transition: all 0.4s ease;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+}
+
+.stat-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.15);
+}
+
+.dark .stat-card:hover {
+  box-shadow: 0 12px 32px rgba(0, 229, 255, 0.15);
+}
+
+.stat-card h4 {
+  font-size: 1.1rem;
+  color: var(--text);
+  opacity: 0.8;
+  margin-bottom: 0.5rem;
+}
+
+.stat-value {
+  font-size: 2rem;
+  font-weight: bold;
+  color: var(--accent);
+  margin: 0.5rem 0;
+}
+
+.stat-percentage {
+  font-size: 1.2rem;
+  color: var(--success);
+  font-weight: bold;
+}
+
+/* Chart Section */
+.progress-chart {
+  background: var(--card);
+  border: 2px solid var(--card-border);
+  border-radius: 12px;
+  padding: 2rem;
+  margin-bottom: 3rem;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+  opacity: 0;
+  transform: translateY(20px);
+  animation: fadeIn 0.6s ease 0.6s forwards;
+}
+
+.progress-chart h3 {
+  font-size: 1.4rem;
+  margin-bottom: 1.5rem;
+  color: var(--accent);
+}
+
+/* Weak Areas Section */
+.weak-areas-section {
+  background: var(--card);
+  border: 2px solid var(--card-border);
+  border-radius: 12px;
+  padding: 2rem;
+  margin-bottom: 3rem;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+  opacity: 0;
+  transform: translateY(20px);
+  animation: fadeIn 0.6s ease 0.8s forwards;
+}
+
+.weak-areas-section h3 {
+  font-size: 1.4rem;
+  margin-bottom: 1.5rem;
+  color: var(--accent);
+}
+
+.weak-areas-list {
+  margin: 1.5rem 0;
+}
+
+.weak-area-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  background: var(--bg-alt);
+  border-radius: 8px;
+  transition: transform 0.3s ease;
+}
+
+.weak-area-item:hover {
+  transform: translateX(5px);
+}
+
+.topic {
+  font-weight: 600;
+  color: var(--text);
+  text-transform: capitalize;
+}
+
+.count {
+  color: var(--error);
+  font-weight: bold;
+}
+
+.suggested-actions {
+  background: var(--bg-alt);
+  padding: 1.5rem;
+  border-radius: 8px;
+  margin-top: 1.5rem;
+}
+
+.suggested-actions h4 {
+  font-size: 1.1rem;
+  margin-bottom: 1rem;
+  color: var(--text);
+}
+
+.suggested-actions ul {
+  padding-left: 1.5rem;
+}
+
+.suggested-actions li {
+  margin-bottom: 0.5rem;
+  color: var(--text);
+}
+
+.suggested-actions li strong {
+  color: var(--accent);
+}
+
+/* Action Button */
+.action-buttons {
+  text-align: center;
+  margin-top: 2rem;
+  opacity: 0;
+  transform: translateY(20px);
+  animation: fadeIn 0.6s ease 1s forwards;
+}
+
+.retake-button {
+  background: var(--accent);
+  color: var(--btn-text);
+  border: none;
+  padding: 0.8rem 1.8rem;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.1);
+}
+
+.retake-button:hover {
+  background: var(--accent-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
+}
+
+/* Animations */
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Responsive Styles */
+@media (max-width: 600px) {
+  .progress-container {
+    padding: 1rem;
+    padding-top: 4rem;
+  }
+  
+  .back-to-dashboard-button {
+    top: 1rem;
+    right: 1rem;
+    padding: 0.6rem 1rem;
+    font-size: 0.85rem;
+  }
+
+  .progress-header h2 {
+    font-size: 2rem;
+    margin-top: 1rem;
+  }
+
+  .progress-stats {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Progress container */
+.progress-container {
+  min-height: 100vh;
+  padding: 2rem;
+  background: linear-gradient(to right, var(--bg), var(--bg-alt));
+  transition: background 0.4s ease;
+}
+
+/* Progress header */
+.progress-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+  gap: 15px;
+}
+
+/* User info styling */
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  font-weight: 600;
+  color: var(--accent);
+}
+
+/* Back to dashboard button */
+.back-to-dashboard-button {
+  margin-bottom: 2rem;
+  padding: 0.6rem 1.2rem;
+  font-size: 1rem;
+  background: var(--accent);
+  color: var(--btn-text);
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.back-to-dashboard-button:hover {
+  background: var(--accent-hover);
+}
+
+/* User welcome */
+.user-welcome {
+  text-align: center;
+  margin-bottom: 2rem;
+  padding: 15px;
+  background-color: var(--card);
+  border-radius: 8px;
+  border: 1px solid var(--card-border);
+}
+
+.user-welcome h3 {
+  color: var(--accent);
+  margin: 0;
+}
+
+/* Empty state */
+.empty-state {
+  text-align: center;
+  padding: 3rem;
+  background-color: var(--card);
+  border-radius: 12px;
+  border: 1px solid var(--card-border);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .progress-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .user-info {
+    order: -1;
+    width: 100%;
+    margin-bottom: 10px;
+    justify-content: space-between;
+  }
+  
+  .back-to-dashboard-button {
+    width: 100%;
+    margin-bottom: 1.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .progress-container {
+    padding: 1rem;
+  }
+  
+  .user-info {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  
+  .back-button {
+    width: 100%;
+  }
+}

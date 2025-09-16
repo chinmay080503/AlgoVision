@@ -1,0 +1,218 @@
+/* Learn.css */
+
+.learn-container {
+  padding: 2rem;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(to right, var(--bg), var(--bg-alt));
+  color: var(--text);
+  transition: background 0.4s ease, color 0.4s ease;
+  animation: fadeInPage 0.8s ease forwards;
+  overflow: hidden; /* Prevent double scrollbars */
+}
+
+.learn-content-wrapper {
+  flex: 1;
+  overflow-y: auto; /* Enable scrolling for content */
+  padding-right: 0.5rem; /* Prevent content from touching scrollbar */
+}
+
+/* Header */
+.learn-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  animation: slideDown 0.8s ease forwards;
+}
+
+.learn-heading {
+  font-size: 2.5rem;
+  color: var(--accent);
+  opacity: 0;
+  animation: slideUp 1s ease-out forwards;
+  animation-delay: 0.4s;
+  margin: 0;
+}
+
+.learn-back-button {
+  background: var(--accent);
+  color: var(--btn-text);
+  border: none;
+  padding: 0.7rem 1.3rem;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.3s ease, transform 0.2s ease;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.1);
+  opacity: 0;
+  animation: slideUp 1s ease-out forwards;
+  animation-delay: 0.6s;
+}
+
+/* Sections */
+.algo-section {
+  opacity: 0;
+  animation: slideUp 1s ease-out forwards;
+  animation-delay: 0.8s;
+  margin-bottom: 3rem;
+}
+
+.algo-title {
+  font-size: 1.5rem;
+  color: var(--accent);
+  margin-bottom: 1.5rem;
+  position: relative;
+  padding-bottom: 0.5rem;
+}
+
+.algo-title::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 60px;
+  height: 3px;
+  background: var(--accent);
+  border-radius: 3px;
+}
+
+/* Grid + Card Styles */
+.algo-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1.5rem;
+}
+
+.algo-card {
+  background-color: var(--card);
+  border: 2px solid var(--card-border);
+  padding: 1.8rem 1.5rem;
+  border-radius: 12px;
+  cursor: pointer;
+  opacity: 0;
+  transform: translateY(20px);
+  animation: fadeInCard 0.6s ease-out forwards;
+  animation-delay: var(--delay, 1s);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+  transition: transform 0.4s ease, box-shadow 0.4s ease, border-color 0.3s ease;
+}
+
+.algo-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.12);
+  border-color: var(--accent);
+}
+
+.algo-card h3 {
+  font-size: 1.3rem;
+  color: var(--accent);
+  margin: 0;
+  text-align: center;
+  transition: color 0.3s ease;
+}
+
+.algo-card:hover h3 {
+  color: var(--accent-hover);
+}
+
+/* Mobile-only adjustments */
+@media (max-width: 768px) {
+  .learn-container {
+    padding: 1rem;
+  }
+
+  .learn-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .learn-heading {
+    font-size: 2rem;
+  }
+
+  .algo-grid {
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 1rem;
+  }
+
+  .algo-card {
+    padding: 1.2rem 1rem;
+  }
+
+  .algo-card h3 {
+    font-size: 1.1rem;
+  }
+
+  .algo-title {
+    font-size: 1.3rem;
+  }
+}
+
+/* Very small screens */
+@media (max-width: 480px) {
+  .algo-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .algo-card {
+    padding: 1rem;
+  }
+
+  .algo-card h3 {
+    font-size: 1rem;
+  }
+
+  .algo-title {
+    font-size: 1.2rem;
+  }
+}
+
+/* Animations */
+@keyframes fadeInPage {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInCard {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

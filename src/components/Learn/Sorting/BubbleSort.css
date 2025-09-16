@@ -1,0 +1,384 @@
+.bubble-sort-container {
+  height: 100%;
+  padding: 24px;
+  font-family: Arial, sans-serif;
+  overflow-y: auto;
+  overflow-x: hidden;
+  
+}
+.dark .bubble-sort-container {
+  background: #0f172a;
+}
+
+.max-width {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 32px;
+}
+
+.back-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  border: none;
+  cursor: pointer;
+  transition: box-shadow 0.2s ease;
+}
+
+.dark .back-button {
+  background-color: #334155;
+  color: #f8fafc;
+}
+
+.title {
+  font-size: 30px;
+  font-weight: bold;
+  color: #1f2937;
+  margin: 0;
+}
+.dark .title {
+  color: #f8fafc;
+}
+
+.spacer {
+  width: 128px;
+}
+
+.main-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 32px;
+}
+
+.left-column {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.card {
+  background-color: white;
+  border-radius: 12px;
+  box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+  padding: 24px;
+}
+.dark .card {
+  background-color: #1e293b;
+  color: #f1f5f9;
+}
+
+.card-title {
+  font-size: 28px;
+  font-weight: 600;
+  margin-bottom: 16px;
+  color: #1f2937;
+}
+.dark .card-title {
+  color: #f1f5f9;
+}
+
+.card-content {
+  color: #374151;
+  line-height: 1.6;
+  font-size: 22px;
+}
+.dark .card-content {
+  color: #e2e8f0;
+}
+
+.complexity-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.complexity-card {
+  padding: 12px;
+  border-radius: 8px;
+}
+
+.blue-card {
+  background-color: #dbeafe;
+}
+.dark .blue-card {
+  background-color: #1e40af30;
+}
+
+.green-card {
+  background-color: #d1fae5;
+}
+.dark .green-card {
+  background-color: #065f4630;
+}
+
+.yellow-card {
+  background-color: #fef3c7;
+}
+.dark .yellow-card {
+  background-color: #92400e30;
+}
+
+.complexity-title {
+  font-weight: 600;
+  margin-bottom: 8px;
+  font-size: 20px;
+}
+
+.blue-title {
+  color: #0593ff;
+}
+.green-title {
+  color: #13e2a7;
+}
+.yellow-title {
+  color: #ff0000;
+}
+
+.complexity-list,
+.characteristics-list {
+  font-size: 18px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.blue-text {
+  color: #6a8ff7;
+}
+.green-text {
+  color: #05dc98;
+}
+.yellow-text {
+  color: #d97706;
+}
+
+.code-container {
+  background-color: #1e293b;
+  color: #f1f5f9;
+  padding: 16px;
+  border-radius: 8px;
+  font-family: Consolas, Monaco, monospace;
+  font-size: 14px;
+  overflow-x: auto;
+}
+.dark .code-container {
+  background-color: #0f172a;
+  color: #e5e7eb;
+}
+
+.legend-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.legend-color {
+  width: 16px;
+  height: 16px;
+  border-radius: 2px;
+}
+
+.legend-text {
+  font-size: 18px;
+  color: #1f2937;
+}
+.dark .legend-text {
+  color: #f9fafb;
+}
+
+.visualization-area {
+  margin-bottom: 12px;
+}
+
+.array-container {
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  gap: 8px;
+  height: 256px;
+  padding: 16px;
+  background-color: #f9fafb;
+  border-radius: 8px;
+  margin-bottom: 24px;
+}
+.dark .array-container {
+  background-color: #1e293b;
+}
+
+.bar {
+  width: 40px;
+  border-radius: 4px 4px 0 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  position: relative;
+  transition: all 0.5s ease-in-out;
+}
+
+.bar-value {
+  color: white;
+  font-weight: bold;
+  font-size: 14px;
+  margin-bottom: 8px;
+}
+
+.bounce-indicator {
+  position: absolute;
+  top: -32px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 12px;
+  height: 12px;
+  background-color: #facc15;
+  border-radius: 50%;
+  animation: bounce 1s infinite;
+}
+
+.status-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.status-card {
+  padding: 12px;
+  border-radius: 8px;
+}
+
+.status-label {
+  font-size: 14px;
+  font-weight: 500;
+  margin-bottom: 4px;
+}
+
+.status-value {
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.action-container {
+  background-color: #f9fafb;
+  padding: 16px;
+  border-radius: 8px;
+  margin-bottom: 24px;
+}
+.dark .action-container {
+  background-color: #1e293b;
+}
+
+.action-label {
+  font-size: 14px;
+  font-weight: 500;
+  color: #4b5563;
+}
+.dark .action-label {
+  color: #e2e8f0;
+}
+
+.action-text {
+  font-size: 18px;
+  color: #1f2937;
+}
+.dark .action-text {
+  color: #f9fafb;
+}
+
+.controls-container {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.control-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.gray-button {
+  background-color: #e5e7eb;
+  color: #374151;
+}
+.dark .gray-button {
+  background-color: #334155;
+  color: #f1f5f9;
+}
+
+.blue-button {
+  background-color: #3b82f6;
+  color: white;
+}
+.dark .blue-button {
+  background-color: #2563eb;
+  color: white;
+}
+
+.red-button {
+  background-color: #ef4444;
+  color: white;
+}
+.dark .red-button {
+  background-color: #dc2626;
+  color: white;
+}
+
+.disabled-button {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+@keyframes bounce {
+  0%, 20%, 53%, 80%, 100% {
+    transform: translateX(-50%) translateY(0);
+  }
+  40%, 43% {
+    transform: translateX(-50%) translateY(-10px);
+  }
+  70% {
+    transform: translateX(-50%) translateY(-5px);
+  }
+  90% {
+    transform: translateX(-50%) translateY(-2px);
+  }
+}
+
+button:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+button:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.code-visualization-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 32px;
+}
