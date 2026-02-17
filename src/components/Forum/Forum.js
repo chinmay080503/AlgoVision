@@ -1,106 +1,169 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
 import "./Forum.css";
 
 const Forum = () => {
   const navigate = useNavigate();
   const [posts, setPosts] = useState([]);
-  const [currentPost, setCurrentPost] = useState({ title: "", content: "", image: null });
+  const [currentPost, setCurrentPost] = useState({ title: "", content: "", images: [] });
   const [currentComment, setCurrentComment] = useState({});
   const [currentReply, setCurrentReply] = useState({});
   const [searchTerm, setSearchTerm] = useState("");
   const [currentUser, setCurrentUser] = useState(null);
   const [activePost, setActivePost] = useState(null);
-  const [viewMode, setViewMode] = useState("list"); // 'list' or 'detail'
-  const [editingItem, setEditingItem] = useState({ type: null, id: null, content: null }); // 'post', 'comment', 'reply'
+  const [viewMode, setViewMode] = useState("list");
+  const [editingItem, setEditingItem] = useState({ type: null, id: null, content: null });
+  const [notifications, setNotifications] = useState([]);
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(false);
+  const [animatingAction, setAnimatingAction] = useState(null);
 
-  // Helper function to migrate old data format to new format
-  const migratePostFormat = (post) => {
-    // If upvotes is a number, convert it to an array
-    if (typeof post.upvotes === 'number') {
-      return {
-        ...post,
-        upvotes: [],
-        downvotes: [],
-        views: []
-      };
-    }
-    return post;
-  };
+  // Dark mode detection
+  useEffect(() => {
+    const checkDarkMode = () => {
+      const bodyHasDark = document.body.classList.contains('dark');
+      const htmlHasDark = document.documentElement.classList.contains('dark');
+      const savedTheme = localStorage.getItem('theme');
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      
+      setIsDarkMode(bodyHasDark || htmlHasDark || savedTheme === 'dark' || (!savedTheme && prefersDark));
+    };
 
-  const migrateCommentFormat = (comment) => {
-    if (typeof comment.upvotes === 'number') {
-      return {
-        ...comment,
-        upvotes: [],
-        downvotes: []
-      };
-    }
-    return comment;
-  };
+    checkDarkMode();
+    const bodyObserver = new MutationObserver(checkDarkMode);
+    bodyObserver.observe(document.body, { attributes: true, attributeFilter: ['class'] });
+    const htmlObserver = new MutationObserver(checkDarkMode);
+    htmlObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+    window.addEventListener('storage', checkDarkMode);
+    window.addEventListener('themeChange', checkDarkMode);
 
-  const migrateReplyFormat = (reply) => {
-    if (typeof reply.upvotes === 'number') {
-      return {
-        ...reply,
-        upvotes: [],
-        downvotes: []
-      };
-    }
-    return reply;
-  };
+    return () => {
+      bodyObserver.disconnect();
+      htmlObserver.disconnect();
+      window.removeEventListener('storage', checkDarkMode);
+      window.removeEventListener('themeChange', checkDarkMode);
+    };
+  }, []);
 
   useEffect(() => {
-    // Get current user from localStorage
     const user = JSON.parse(localStorage.getItem("currentUser"));
     if (user) {
       setCurrentUser(user);
+      loadNotifications(user.id);
     } else {
-      navigate("/");
+      navigate("/login");
     }
 
-    // Load posts from localStorage and migrate format if needed
     const savedPosts = JSON.parse(localStorage.getItem("forumPosts")) || [];
-    
-    // Migrate posts format if needed
-    const migratedPosts = savedPosts.map(post => {
-      let migratedPost = migratePostFormat(post);
-      
-      // Migrate comments
-      if (migratedPost.comments && migratedPost.comments.length > 0) {
-        migratedPost.comments = migratedPost.comments.map(comment => {
-          let migratedComment = migrateCommentFormat(comment);
-          
-          // Migrate replies
-          if (migratedComment.replies && migratedComment.replies.length > 0) {
-            migratedComment.replies = migratedComment.replies.map(migrateReplyFormat);
-          }
-          
-          return migratedComment;
-        });
-      }
-      
-      return migratedPost;
-    });
-    
-    setPosts(migratedPosts);
-    localStorage.setItem("forumPosts", JSON.stringify(migratedPosts));
+    setPosts(savedPosts);
   }, [navigate]);
 
-  // Safe version of getUserVoteStatus that handles both formats
-  const getUserVoteStatus = (item) => {
-    if (!item || !currentUser) return null;
+  const loadNotifications = (userId) => {
+    const allNotifications = JSON.parse(localStorage.getItem("forumNotifications")) || {};
+    const userNotifications = allNotifications[userId] || [];
+    setNotifications(userNotifications.filter(n => !n.read));
+  };
+
+  const addNotification = (recipientId, type, postId, content, commentId = null, replyId = null) => {
+    if (recipientId === currentUser.id) return;
+
+    const allNotifications = JSON.parse(localStorage.getItem("forumNotifications")) || {};
+    const userNotifications = allNotifications[recipientId] || [];
     
-    // Handle both number and array formats for upvotes/downvotes
-    if (Array.isArray(item.upvotes)) {
-      if (item.upvotes.includes(currentUser.id)) return "upvoted";
-      if (Array.isArray(item.downvotes) && item.downvotes.includes(currentUser.id)) return "downvoted";
-    } else if (typeof item.upvotes === 'number') {
-      // This is the old format - we'll migrate it when user interacts with it
-      return null;
+    const notification = {
+      id: Date.now(),
+      type,
+      postId,
+      commentId,
+      replyId,
+      content,
+      from: currentUser.username,
+      timestamp: new Date().toISOString(),
+      read: false
+    };
+
+    userNotifications.unshift(notification);
+    allNotifications[recipientId] = userNotifications;
+    localStorage.setItem("forumNotifications", JSON.stringify(allNotifications));
+  };
+
+  const markNotificationAsRead = (notificationId) => {
+    const allNotifications = JSON.parse(localStorage.getItem("forumNotifications")) || {};
+    const userNotifications = allNotifications[currentUser.id] || [];
+    
+    const updatedNotifications = userNotifications.map(n => 
+      n.id === notificationId ? { ...n, read: true } : n
+    );
+    
+    allNotifications[currentUser.id] = updatedNotifications;
+    localStorage.setItem("forumNotifications", JSON.stringify(allNotifications));
+    setNotifications(updatedNotifications.filter(n => !n.read));
+  };
+
+  const handleNotificationClick = (notification) => {
+    markNotificationAsRead(notification.id);
+    const post = posts.find(p => p.id === notification.postId);
+    if (post) {
+      viewPost(post);
+      setShowNotifications(false);
     }
-    
-    return null;
+  };
+
+  const handleMultipleImageUpload = (e, type, postId = null, commentId = null) => {
+    const files = Array.from(e.target.files);
+    if (!files.length) return;
+
+    const promises = files.map(file => {
+      return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onload = (event) => resolve(event.target.result);
+        reader.readAsDataURL(file);
+      });
+    });
+
+    Promise.all(promises).then(images => {
+      if (type === "post") {
+        setCurrentPost({ ...currentPost, images: [...currentPost.images, ...images] });
+      } else if (type === "comment" && postId) {
+        const existing = currentComment[postId]?.images || [];
+        setCurrentComment({ 
+          ...currentComment, 
+          [postId]: { ...currentComment[postId], images: [...existing, ...images] } 
+        });
+      } else if (type === "reply" && postId && commentId) {
+        const existing = currentReply[`${postId}-${commentId}`]?.images || [];
+        setCurrentReply({ 
+          ...currentReply, 
+          [`${postId}-${commentId}`]: { 
+            ...currentReply[`${postId}-${commentId}`], 
+            images: [...existing, ...images] 
+          } 
+        });
+      }
+    });
+  };
+
+  const removeImage = (type, imageIndex, postId = null, commentId = null) => {
+    if (type === "post") {
+      const newImages = currentPost.images.filter((_, i) => i !== imageIndex);
+      setCurrentPost({ ...currentPost, images: newImages });
+    } else if (type === "comment" && postId) {
+      const newImages = (currentComment[postId]?.images || []).filter((_, i) => i !== imageIndex);
+      setCurrentComment({ 
+        ...currentComment, 
+        [postId]: { ...currentComment[postId], images: newImages } 
+      });
+    } else if (type === "reply" && postId && commentId) {
+      const newImages = (currentReply[`${postId}-${commentId}`]?.images || []).filter((_, i) => i !== imageIndex);
+      setCurrentReply({ 
+        ...currentReply, 
+        [`${postId}-${commentId}`]: { 
+          ...currentReply[`${postId}-${commentId}`], 
+          images: newImages 
+        } 
+      });
+    }
   };
 
   const handlePostSubmit = (e) => {
@@ -111,13 +174,12 @@ const Forum = () => {
       id: Date.now(),
       title: currentPost.title,
       content: currentPost.content,
-      image: currentPost.image,
+      images: currentPost.images,
       author: currentUser.username,
       userId: currentUser.id,
       timestamp: new Date().toISOString(),
       views: [],
-      upvotes: [],
-      downvotes: [],
+      likes: [],
       comments: []
     };
 
@@ -125,57 +187,9 @@ const Forum = () => {
     setPosts(updatedPosts);
     localStorage.setItem("forumPosts", JSON.stringify(updatedPosts));
     
-    setCurrentPost({ title: "", content: "", image: null });
-    document.getElementById("image-upload").value = "";
-  };
-
-  const handleImageUpload = (e, type, postId = null, commentId = null) => {
-    const file = e.target.files[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      if (type === "post") {
-        setCurrentPost({ ...currentPost, image: event.target.result });
-      } else if (type === "comment" && postId) {
-        setCurrentComment({ 
-          ...currentComment, 
-          [postId]: { ...currentComment[postId], image: event.target.result } 
-        });
-      } else if (type === "reply" && postId && commentId) {
-        setCurrentReply({ 
-          ...currentReply, 
-          [`${postId}-${commentId}`]: { 
-            ...currentReply[`${postId}-${commentId}`], 
-            image: event.target.result 
-          } 
-        });
-      }
-    };
-    reader.readAsDataURL(file);
-  };
-
-  // Add function to remove image
-  const removeImage = (type, postId = null, commentId = null) => {
-    if (type === "post") {
-      setCurrentPost({ ...currentPost, image: null });
-      document.getElementById("image-upload").value = "";
-    } else if (type === "comment" && postId) {
-      setCurrentComment({ 
-        ...currentComment, 
-        [postId]: { ...currentComment[postId], image: null } 
-      });
-      document.getElementById(`comment-image-${postId}`).value = "";
-    } else if (type === "reply" && postId && commentId) {
-      setCurrentReply({ 
-        ...currentReply, 
-        [`${postId}-${commentId}`]: { 
-          ...currentReply[`${postId}-${commentId}`], 
-          image: null 
-        } 
-      });
-      document.getElementById(`reply-image-${postId}-${commentId}`).value = "";
-    }
+    setCurrentPost({ title: "", content: "", images: [] });
+    setAnimatingAction({ type: 'create', id: newPost.id });
+    setTimeout(() => setAnimatingAction(null), 1000);
   };
 
   const handleCommentSubmit = (postId) => {
@@ -184,17 +198,17 @@ const Forum = () => {
     const newComment = {
       id: Date.now(),
       content: currentComment[postId].content,
-      image: currentComment[postId]?.image || null,
+      images: currentComment[postId]?.images || [],
       author: currentUser.username,
       userId: currentUser.id,
       timestamp: new Date().toISOString(),
-      upvotes: [],
-      downvotes: [],
+      likes: [],
       replies: []
     };
 
     const updatedPosts = posts.map(post => {
       if (post.id === postId) {
+        addNotification(post.userId, 'comment', postId, `commented on your post: "${post.title}"`);
         return {
           ...post,
           comments: [newComment, ...post.comments]
@@ -206,18 +220,14 @@ const Forum = () => {
     setPosts(updatedPosts);
     localStorage.setItem("forumPosts", JSON.stringify(updatedPosts));
     
-    // Clear the comment input and image preview for this specific post
-    setCurrentComment({ 
-      ...currentComment, 
-      [postId]: { content: "", image: null } 
-    });
-    document.getElementById(`comment-image-${postId}`).value = "";
-    
-    // Update activePost if we're in detail view to show the new comment immediately
+    setCurrentComment({ ...currentComment, [postId]: { content: "", images: [] } });
     if (viewMode === "detail" && activePost && activePost.id === postId) {
       const updatedActivePost = updatedPosts.find(p => p.id === postId);
       setActivePost(updatedActivePost);
     }
+    
+    setAnimatingAction({ type: 'comment', id: newComment.id });
+    setTimeout(() => setAnimatingAction(null), 1000);
   };
 
   const handleReplySubmit = (postId, commentId) => {
@@ -226,18 +236,18 @@ const Forum = () => {
     const newReply = {
       id: Date.now(),
       content: currentReply[`${postId}-${commentId}`].content,
-      image: currentReply[`${postId}-${commentId}`]?.image || null,
+      images: currentReply[`${postId}-${commentId}`]?.images || [],
       author: currentUser.username,
       userId: currentUser.id,
       timestamp: new Date().toISOString(),
-      upvotes: [],
-      downvotes: []
+      likes: []
     };
 
     const updatedPosts = posts.map(post => {
       if (post.id === postId) {
         const updatedComments = post.comments.map(comment => {
           if (comment.id === commentId) {
+            addNotification(comment.userId, 'reply', postId, `replied to your comment`, commentId, newReply.id);
             return {
               ...comment,
               replies: [...comment.replies, newReply]
@@ -253,90 +263,45 @@ const Forum = () => {
     setPosts(updatedPosts);
     localStorage.setItem("forumPosts", JSON.stringify(updatedPosts));
     
-    // Clear the reply input and image preview for this specific comment
-    setCurrentReply({ 
-      ...currentReply, 
-      [`${postId}-${commentId}`]: { content: "", image: null } 
-    });
-    document.getElementById(`reply-image-${postId}-${commentId}`).value = "";
-    
-    // Update activePost if we're in detail view to show the new reply immediately
+    setCurrentReply({ ...currentReply, [`${postId}-${commentId}`]: { content: "", images: [] } });
     if (viewMode === "detail" && activePost && activePost.id === postId) {
       const updatedActivePost = updatedPosts.find(p => p.id === postId);
       setActivePost(updatedActivePost);
     }
+    
+    setAnimatingAction({ type: 'reply', id: newReply.id });
+    setTimeout(() => setAnimatingAction(null), 1000);
   };
 
-  const handleVote = (type, postId, commentId = null, replyId = null, voteType) => {
+  const handleLike = (type, postId, commentId = null, replyId = null) => {
     const updatedPosts = posts.map(post => {
       if (post.id === postId) {
         if (type === "post") {
-          // Ensure we're working with arrays (migrate if needed)
-          let upvotesArray = Array.isArray(post.upvotes) ? [...post.upvotes] : [];
-          let downvotesArray = Array.isArray(post.downvotes) ? [...post.downvotes] : [];
-          let viewsArray = Array.isArray(post.views) ? [...post.views] : [];
+          let likesArray = Array.isArray(post.likes) ? [...post.likes] : [];
+          const hasLiked = likesArray.includes(currentUser.id);
           
-          // Check if user has already voted
-          const hasUpvoted = upvotesArray.includes(currentUser.id);
-          const hasDownvoted = downvotesArray.includes(currentUser.id);
-          
-          if (voteType === "upvote") {
-            if (hasUpvoted) {
-              // Remove upvote if already upvoted
-              upvotesArray = upvotesArray.filter(id => id !== currentUser.id);
-            } else {
-              // Add upvote and remove downvote if exists
-              upvotesArray.push(currentUser.id);
-              downvotesArray = downvotesArray.filter(id => id !== currentUser.id);
-            }
-          } else if (voteType === "downvote") {
-            if (hasDownvoted) {
-              // Remove downvote if already downvoted
-              downvotesArray = downvotesArray.filter(id => id !== currentUser.id);
-            } else {
-              // Add downvote and remove upvote if exists
-              downvotesArray.push(currentUser.id);
-              upvotesArray = upvotesArray.filter(id => id !== currentUser.id);
-            }
+          if (hasLiked) {
+            likesArray = likesArray.filter(id => id !== currentUser.id);
+          } else {
+            likesArray.push(currentUser.id);
+            addNotification(post.userId, 'like', postId, `liked your post: "${post.title}"`);
           }
           
-          return {
-            ...post,
-            upvotes: upvotesArray,
-            downvotes: downvotesArray,
-            views: viewsArray
-          };
+          return { ...post, likes: likesArray };
         } else if (type === "comment" && commentId) {
           const updatedComments = post.comments.map(comment => {
             if (comment.id === commentId) {
-              // Ensure we're working with arrays
-              let upvotesArray = Array.isArray(comment.upvotes) ? [...comment.upvotes] : [];
-              let downvotesArray = Array.isArray(comment.downvotes) ? [...comment.downvotes] : [];
+              let likesArray = Array.isArray(comment.likes) ? [...comment.likes] : [];
+              const hasLiked = likesArray.includes(currentUser.id);
               
-              const hasUpvoted = upvotesArray.includes(currentUser.id);
-              const hasDownvoted = downvotesArray.includes(currentUser.id);
-              
-              if (voteType === "upvote") {
-                if (hasUpvoted) {
-                  upvotesArray = upvotesArray.filter(id => id !== currentUser.id);
-                } else {
-                  upvotesArray.push(currentUser.id);
-                  downvotesArray = downvotesArray.filter(id => id !== currentUser.id);
-                }
-              } else if (voteType === "downvote") {
-                if (hasDownvoted) {
-                  downvotesArray = downvotesArray.filter(id => id !== currentUser.id);
-                } else {
-                  downvotesArray.push(currentUser.id);
-                  upvotesArray = upvotesArray.filter(id => id !== currentUser.id);
-                }
+              if (hasLiked) {
+                likesArray = likesArray.filter(id => id !== currentUser.id);
+              } else {
+                likesArray.push(currentUser.id);
+                addNotification(comment.userId, 'like', postId, `liked your comment`, commentId);
               }
               
-              return {
-                ...comment,
-                upvotes: upvotesArray,
-                downvotes: downvotesArray
-              };
+              return { ...comment, likes: likesArray };
             }
             return comment;
           });
@@ -346,34 +311,17 @@ const Forum = () => {
             if (comment.id === commentId) {
               const updatedReplies = comment.replies.map(reply => {
                 if (reply.id === replyId) {
-                  // Ensure we're working with arrays
-                  let upvotesArray = Array.isArray(reply.upvotes) ? [...reply.upvotes] : [];
-                  let downvotesArray = Array.isArray(reply.downvotes) ? [...reply.downvotes] : [];
+                  let likesArray = Array.isArray(reply.likes) ? [...reply.likes] : [];
+                  const hasLiked = likesArray.includes(currentUser.id);
                   
-                  const hasUpvoted = upvotesArray.includes(currentUser.id);
-                  const hasDownvoted = downvotesArray.includes(currentUser.id);
-                  
-                  if (voteType === "upvote") {
-                    if (hasUpvoted) {
-                      upvotesArray = upvotesArray.filter(id => id !== currentUser.id);
-                    } else {
-                      upvotesArray.push(currentUser.id);
-                      downvotesArray = downvotesArray.filter(id => id !== currentUser.id);
-                    }
-                  } else if (voteType === "downvote") {
-                    if (hasDownvoted) {
-                      downvotesArray = downvotesArray.filter(id => id !== currentUser.id);
-                    } else {
-                      downvotesArray.push(currentUser.id);
-                      upvotesArray = upvotesArray.filter(id => id !== currentUser.id);
-                    }
+                  if (hasLiked) {
+                    likesArray = likesArray.filter(id => id !== currentUser.id);
+                  } else {
+                    likesArray.push(currentUser.id);
+                    addNotification(reply.userId, 'like', postId, `liked your reply`, commentId, replyId);
                   }
                   
-                  return {
-                    ...reply,
-                    upvotes: upvotesArray,
-                    downvotes: downvotesArray
-                  };
+                  return { ...reply, likes: likesArray };
                 }
                 return reply;
               });
@@ -390,14 +338,12 @@ const Forum = () => {
     setPosts(updatedPosts);
     localStorage.setItem("forumPosts", JSON.stringify(updatedPosts));
     
-    // Update activePost if we're in detail view
     if (viewMode === "detail" && activePost && activePost.id === postId) {
       const updatedActivePost = updatedPosts.find(p => p.id === postId);
       setActivePost(updatedActivePost);
     }
   };
 
-  // Delete functions
   const deletePost = (postId) => {
     if (window.confirm("Are you sure you want to delete this post?")) {
       const updatedPosts = posts.filter(post => post.id !== postId);
@@ -407,6 +353,9 @@ const Forum = () => {
       if (viewMode === "detail" && activePost && activePost.id === postId) {
         setViewMode("list");
       }
+      
+      setAnimatingAction({ type: 'delete', id: postId });
+      setTimeout(() => setAnimatingAction(null), 1000);
     }
   };
 
@@ -429,6 +378,9 @@ const Forum = () => {
         const updatedActivePost = updatedPosts.find(p => p.id === postId);
         setActivePost(updatedActivePost);
       }
+      
+      setAnimatingAction({ type: 'delete', id: commentId });
+      setTimeout(() => setAnimatingAction(null), 1000);
     }
   };
 
@@ -457,10 +409,12 @@ const Forum = () => {
         const updatedActivePost = updatedPosts.find(p => p.id === postId);
         setActivePost(updatedActivePost);
       }
+      
+      setAnimatingAction({ type: 'delete', id: replyId });
+      setTimeout(() => setAnimatingAction(null), 1000);
     }
   };
 
-  // Edit functions
   const startEditing = (type, id, content, postId = null, commentId = null) => {
     setEditingItem({ type, id, content, postId, commentId });
   };
@@ -523,13 +477,14 @@ const Forum = () => {
       const updatedActivePost = updatedPosts.find(p => p.id === activePost.id);
       setActivePost(updatedActivePost);
     }
+    
+    setAnimatingAction({ type: 'update', id: editingItem.id });
+    setTimeout(() => setAnimatingAction(null), 1000);
   };
 
   const viewPost = (post) => {
-    // Ensure we're working with arrays
     let viewsArray = Array.isArray(post.views) ? [...post.views] : [];
     
-    // Check if user has already viewed this post
     if (!viewsArray.includes(currentUser.id)) {
       viewsArray.push(currentUser.id);
       
@@ -538,9 +493,7 @@ const Forum = () => {
           return { 
             ...p, 
             views: viewsArray,
-            // Ensure upvotes and downvotes are arrays too
-            upvotes: Array.isArray(p.upvotes) ? p.upvotes : [],
-            downvotes: Array.isArray(p.downvotes) ? p.downvotes : []
+            likes: Array.isArray(p.likes) ? p.likes : []
           };
         }
         return p;
@@ -558,20 +511,20 @@ const Forum = () => {
 
   const formatDate = (timestamp) => {
     const date = new Date(timestamp);
-    return `${date.toLocaleDateString()} ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = date.getFullYear();
+    return `${day}/${month}/${year}`;
   };
 
-  // Helper function to get vote count (handles both number and array formats)
-  const getVoteCount = (item, voteType) => {
+  const getLikeCount = (item) => {
     if (!item) return 0;
-    
-    if (Array.isArray(item[voteType])) {
-      return item[voteType].length;
-    } else if (typeof item[voteType] === 'number') {
-      return item[voteType];
-    }
-    
-    return 0;
+    return Array.isArray(item.likes) ? item.likes.length : 0;
+  };
+
+  const hasUserLiked = (item) => {
+    if (!item || !currentUser) return false;
+    return Array.isArray(item.likes) && item.likes.includes(currentUser.id);
   };
 
   const filteredPosts = posts.filter(post => 
@@ -581,305 +534,430 @@ const Forum = () => {
   );
 
   return (
-    <div className="forum-container">
-      <div className="forum-header">
-        <button className="back-button" onClick={() => viewMode === "detail" ? setViewMode("list") : navigate("/dashboard")}>
-          {viewMode === "detail" ? "← Back to Forum" : "← Back to Dashboard"}
-        </button>
+    <div className={`forum-wrapper ${isDarkMode ? 'dark' : ''}`}>
+      <motion.div 
+        className="forum-top-bar"
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+      >
         <h1>Discussion Forum</h1>
-        <div className="user-info">
-          <span>USER: {currentUser?.username}</span>
+        <div className="top-bar-right">
+          <div className="notification-bell" onClick={() => setShowNotifications(!showNotifications)}>
+            <span className="bell-icon">🔔</span>
+            {notifications.length > 0 && (
+              <span className="notification-badge">{notifications.length}</span>
+            )}
+          </div>
+          <div className="top-bar-actions">
+            <motion.button
+              className="dashboard-return-btn"
+              onClick={() => viewMode === "detail" ? setViewMode("list") : navigate("/dashboard")}
+              whileHover={{ scale: 1.05, y: -2 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              {viewMode === "detail" ? "← Back to Forum" : "← Back to Dashboard"}
+            </motion.button>
+            <div className="user-display">
+              <span>{currentUser?.username}</span>
+            </div>
+          </div>
         </div>
-      </div>
+      </motion.div>
+
+      <AnimatePresence>
+        {showNotifications && (
+          <motion.div
+            className="notifications-panel"
+            initial={{ opacity: 0, y: -20, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -20, scale: 0.95 }}
+            transition={{ duration: 0.2 }}
+          >
+            <h3>Notifications</h3>
+            {notifications.length === 0 ? (
+              <p className="no-notifications">No new notifications</p>
+            ) : (
+              notifications.map(notification => (
+                <motion.div
+                  key={notification.id}
+                  className="notification-item"
+                  onClick={() => handleNotificationClick(notification)}
+                  whileHover={{ x: 5, backgroundColor: 'var(--bg-alt)' }}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                >
+                  <div className="notification-content">
+                    <strong>{notification.from}</strong> {notification.content}
+                  </div>
+                  <div className="notification-time">{formatDate(notification.timestamp)}</div>
+                </motion.div>
+              ))
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {viewMode === "list" ? (
         <>
-          <div className="search-container">
+          <motion.div 
+            className="search-wrapper"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+          >
             <input
               type="text"
-              placeholder="Search posts by title, content, or author..."
+              placeholder="🔍 Search posts by title, content, or author..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="search-input"
+              className="search-field"
             />
-          </div>
+          </motion.div>
 
-          <div className="post-form">
-            <h2>Create a New Post</h2>
+          <motion.div 
+            className="create-post-box"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+          >
+            <h2>✍️ Create a New Post</h2>
             <form onSubmit={handlePostSubmit}>
               <input
                 type="text"
                 placeholder="Post Title"
                 value={currentPost.title}
                 onChange={(e) => setCurrentPost({ ...currentPost, title: e.target.value })}
-                className="post-title-input"
+                className="title-field"
                 required
               />
               <textarea
-                placeholder="What's your question or insight about algorithms?"
+                placeholder="Share your thoughts, questions, or insights about algorithms..."
                 value={currentPost.content}
                 onChange={(e) => setCurrentPost({ ...currentPost, content: e.target.value })}
-                className="post-content-input"
+                className="content-field"
                 required
               />
-              <div className="image-upload-container">
-                <label htmlFor="image-upload" className="image-upload-label">
-                  📷 Upload Image
+              <div className="images-upload-zone">
+                <label htmlFor="post-images" className="upload-label">
+                  📷 Upload Images
                 </label>
                 <input
-                  id="image-upload"
+                  id="post-images"
                   type="file"
                   accept="image/*"
-                  onChange={(e) => handleImageUpload(e, "post")}
-                  className="image-upload-input"
+                  multiple
+                  onChange={(e) => handleMultipleImageUpload(e, "post")}
+                  className="upload-input"
                 />
-                {currentPost.image && (
-                  <div className="image-preview">
-                    <img src={currentPost.image} alt="Preview" />
-                    <button 
-                      type="button" 
-                      className="remove-image-btn"
-                      onClick={() => removeImage("post")}
-                    >
-                      ✕ Remove
-                    </button>
+                {currentPost.images.length > 0 && (
+                  <div className="images-preview-grid">
+                    {currentPost.images.map((img, idx) => (
+                      <div key={idx} className="preview-item">
+                        <img src={img} alt={`Preview ${idx + 1}`} />
+                        <button 
+                          type="button" 
+                          className="remove-img-btn"
+                          onClick={() => removeImage("post", idx)}
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    ))}
                   </div>
                 )}
               </div>
-              <button type="submit" className="submit-post-btn">Post Question</button>
+              <motion.button 
+                type="submit" 
+                className="submit-post-btn"
+                whileHover={{ scale: 1.02, y: -2 }}
+                whileTap={{ scale: 0.98 }}
+              >
+                Post Question
+              </motion.button>
             </form>
-          </div>
+          </motion.div>
 
-          <div className="posts-list">
+          <div className="posts-feed">
             <h2>Community Discussions</h2>
             {filteredPosts.length === 0 ? (
-              <div className="no-posts">No posts found. Be the first to start a discussion!</div>
+              <motion.div 
+                className="no-posts"
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+              >
+                No posts found. Be the first to start a discussion!
+              </motion.div>
             ) : (
-              filteredPosts.map(post => (
-                <div key={post.id} className="post-card">
-                  <div className="post-header">
-                    <h3 onClick={() => viewPost(post)} className="post-title">{post.title}</h3>
-                    {post.userId === currentUser.id && (
-                      <div className="post-actions">
-                        <button 
-                          className="edit-btn"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            startEditing("post", post.id, post.content);
-                          }}
-                        >
-                          ✏️
-                        </button>
-                        <button 
-                          className="delete-btn"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            deletePost(post.id);
-                          }}
-                        >
-                          🗑️
-                        </button>
-                      </div>
-                    )}
+              filteredPosts.map((post, index) => (
+                <motion.div
+                  key={post.id}
+                  className="post-preview-card"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.4 + index * 0.05 }}
+                  whileHover={{ y: -4, boxShadow: '0 12px 24px rgba(0,0,0,0.15)' }}
+                >
+                  <div className="preview-header">
+                    <h3 onClick={() => viewPost(post)} className="preview-title">{post.title}</h3>
                   </div>
-                  <div className="post-meta">
-                    <span className="post-author">By: {post.author}</span>
-                    <span className="post-date">{formatDate(post.timestamp)}</span>
-                    <span className="post-views">👁️ {getVoteCount(post, 'views')} views</span>
+                  <div className="preview-meta">
+                    <span className="meta-author">👤 {post.author}</span>
+                    <span className="meta-date">📅 {formatDate(post.timestamp)}</span>
+                    <span className="meta-views">👁️ {post.views?.length || 0} views</span>
                   </div>
-                  <p className="post-content-preview">{post.content.substring(0, 150)}...</p>
-                  {post.image && (
-                    <div className="post-image-preview">
-                      <img src={post.image} alt="Post" />
+                  <p className="preview-excerpt">{post.content.substring(0, 200)}...</p>
+                  {post.images && post.images.length > 0 && (
+                    <div className="preview-images">
+                      <img src={post.images[0]} alt="Post preview" />
+                      {post.images.length > 1 && (
+                        <span className="more-images">+{post.images.length - 1}</span>
+                      )}
                     </div>
                   )}
-                  <div className="post-stats">
-                    <span className="post-votes">
-                      <span className={`upvote-count ${getUserVoteStatus(post) === 'upvoted' ? 'user-voted' : ''}`}>
-                        ▲ {getVoteCount(post, 'upvotes')}
-                      </span>
-                      <span className={`downvote-count ${getUserVoteStatus(post) === 'downvoted' ? 'user-voted' : ''}`}>
-                        ▼ {getVoteCount(post, 'downvotes')}
+                  <div className="preview-stats">
+                    <span className="stat-likes">
+                      <span className={hasUserLiked(post) ? 'user-liked' : ''}>
+                        {hasUserLiked(post) ? '💚' : '🤍'} {getLikeCount(post)}
                       </span>
                     </span>
-                    <span className="post-comments">💬 {post.comments.length} comments</span>
+                    <span className="stat-comments">💬 {post.comments.length} comments</span>
+                    <motion.button 
+                      onClick={() => viewPost(post)} 
+                      className="view-btn"
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                    >
+                      View Discussion →
+                    </motion.button>
                   </div>
-                  <button onClick={() => viewPost(post)} className="view-post-btn">View Discussion</button>
-                </div>
+                </motion.div>
               ))
             )}
           </div>
         </>
       ) : (
-        <div className="post-detail">
+        <div className="post-full-view">
           {activePost && (
             <>
-              <div className="post-detail-card">
-                <div className="post-header">
+              <motion.div 
+                className="post-detail-box"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+              >
+                <div className="detail-header">
                   <h2>{activePost.title}</h2>
                   {activePost.userId === currentUser.id && (
-                    <div className="post-actions">
-                      <button 
-                        className="edit-btn"
+                    <div className="detail-actions">
+                      <motion.button 
+                        className="edit-action"
                         onClick={() => startEditing("post", activePost.id, activePost.content)}
+                        whileHover={{ scale: 1.1 }}
+                        whileTap={{ scale: 0.9 }}
                       >
                         ✏️
-                      </button>
-                      <button 
-                        className="delete-btn"
+                      </motion.button>
+                      <motion.button 
+                        className="delete-action"
                         onClick={() => deletePost(activePost.id)}
+                        whileHover={{ scale: 1.1 }}
+                        whileTap={{ scale: 0.9 }}
                       >
                         🗑️
-                      </button>
+                      </motion.button>
                     </div>
                   )}
                 </div>
-                <div className="post-meta">
-                  <span className="post-author">By: {activePost.author}</span>
-                  <span className="post-date">{formatDate(activePost.timestamp)}</span>
-                  <span className="post-views">👁️ {getVoteCount(activePost, 'views')} views</span>
+                <div className="detail-meta">
+                  <span>👤 {activePost.author}</span>
+                  <span>📅 {formatDate(activePost.timestamp)}</span>
+                  <span>👁️ {activePost.views?.length || 0} views</span>
                 </div>
                 
                 {editingItem.type === "post" && editingItem.id === activePost.id ? (
-                  <div className="edit-container">
+                  <div className="edit-zone">
                     <textarea
                       value={editingItem.content}
                       onChange={(e) => setEditingItem({...editingItem, content: e.target.value})}
-                      className="edit-textarea"
+                      className="edit-field"
                     />
-                    <div className="edit-actions">
-                      <button onClick={() => saveEdit(editingItem.content)} className="save-edit-btn">Save</button>
-                      <button onClick={cancelEditing} className="cancel-edit-btn">Cancel</button>
+                    <div className="edit-btns">
+                      <motion.button 
+                        onClick={() => saveEdit(editingItem.content)}
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                      >
+                        💾 Save
+                      </motion.button>
+                      <motion.button 
+                        onClick={cancelEditing}
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                      >
+                        ❌ Cancel
+                      </motion.button>
                     </div>
                   </div>
                 ) : (
-                  <p className="post-content">{activePost.content}</p>
+                  <p className="detail-content">{activePost.content}</p>
                 )}
                 
-                {activePost.image && (
-                  <div className="post-image">
-                    <img src={activePost.image} alt="Post" />
+                {activePost.images && activePost.images.length > 0 && (
+                  <div className="detail-images-grid">
+                    {activePost.images.map((img, idx) => (
+                      <motion.img 
+                        key={idx} 
+                        src={img} 
+                        alt={`Post image ${idx + 1}`}
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ delay: idx * 0.1 }}
+                      />
+                    ))}
                   </div>
                 )}
-                <div className="post-voting">
-                  <button 
-                    onClick={() => handleVote("post", activePost.id, null, null, "upvote")} 
-                    className={`upvote-btn ${getUserVoteStatus(activePost) === 'upvoted' ? 'user-upvoted' : ''}`}
+                
+                <div className="like-section">
+                  <motion.button 
+                    onClick={() => handleLike("post", activePost.id)} 
+                    className={`like-btn ${hasUserLiked(activePost) ? 'liked' : ''}`}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
                   >
-                    ▲ {getVoteCount(activePost, 'upvotes')}
-                  </button>
-                  <button 
-                    onClick={() => handleVote("post", activePost.id, null, null, "downvote")} 
-                    className={`downvote-btn ${getUserVoteStatus(activePost) === 'downvoted' ? 'user-downvoted' : ''}`}
-                  >
-                    ▼ {getVoteCount(activePost, 'downvotes')}
-                  </button>
+                    {hasUserLiked(activePost) ? '💚' : '🤍'} {getLikeCount(activePost)} Like{getLikeCount(activePost) !== 1 ? 's' : ''}
+                  </motion.button>
                 </div>
-              </div>
+              </motion.div>
 
-              <div className="comments-section">
-                <h3>Comments ({activePost.comments.length})</h3>
-                <div className="comment-form">
+              <motion.div 
+                className="comments-box"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
+              >
+                <h3>💬 Comments ({activePost.comments.length})</h3>
+                
+                <div className="comment-form-box">
                   <textarea
-                    placeholder="Add a comment..."
+                    placeholder="Share your thoughts..."
                     value={currentComment[activePost.id]?.content || ""}
                     onChange={(e) => setCurrentComment({ 
                       ...currentComment, 
                       [activePost.id]: { ...currentComment[activePost.id], content: e.target.value } 
                     })}
-                    className="comment-input"
+                    className="comment-field"
                   />
-                  <div className="image-upload-container">
-                    <label htmlFor={`comment-image-${activePost.id}`} className="image-upload-label">
-                      📷 Upload Image
+                  <div className="images-upload-zone">
+                    <label htmlFor={`comment-imgs-${activePost.id}`} className="upload-label">
+                      📷 Upload Images
                     </label>
                     <input
-                      id={`comment-image-${activePost.id}`}
+                      id={`comment-imgs-${activePost.id}`}
                       type="file"
                       accept="image/*"
-                      onChange={(e) => handleImageUpload(e, "comment", activePost.id)}
-                      className="image-upload-input"
+                      multiple
+                      onChange={(e) => handleMultipleImageUpload(e, "comment", activePost.id)}
+                      className="upload-input"
                     />
-                    {currentComment[activePost.id]?.image && (
-                      <div className="image-preview">
-                        <img src={currentComment[activePost.id].image} alt="Preview" />
-                        <button 
-                          type="button" 
-                          className="remove-image-btn"
-                          onClick={() => removeImage("comment", activePost.id)}
-                        >
-                          ✕ Remove
-                        </button>
+                    {currentComment[activePost.id]?.images?.length > 0 && (
+                      <div className="images-preview-grid">
+                        {currentComment[activePost.id].images.map((img, idx) => (
+                          <div key={idx} className="preview-item">
+                            <img src={img} alt={`Preview ${idx + 1}`} />
+                            <button 
+                              type="button" 
+                              className="remove-img-btn"
+                              onClick={() => removeImage("comment", idx, activePost.id)}
+                            >
+                              ✕
+                            </button>
+                          </div>
+                        ))}
                       </div>
                     )}
                   </div>
-                  <button onClick={() => handleCommentSubmit(activePost.id)} className="submit-comment-btn">Post Comment</button>
+                  <motion.button 
+                    onClick={() => handleCommentSubmit(activePost.id)} 
+                    className="submit-comment-btn"
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    💬 Post Comment
+                  </motion.button>
                 </div>
 
-                {activePost.comments.map(comment => (
-                  <div key={comment.id} className="comment-card">
-                    <div className="comment-header">
-                      <span className="comment-author">{comment.author}</span>
-                      <span className="comment-date">{formatDate(comment.timestamp)}</span>
+                {activePost.comments.map((comment, cIdx) => (
+                  <motion.div
+                    key={comment.id}
+                    className="comment-item"
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: cIdx * 0.05 }}
+                  >
+                    <div className="comment-top">
+                      <div>
+                        <span className="comment-author">👤 {comment.author}</span>
+                        <span className="comment-date">📅 {formatDate(comment.timestamp)}</span>
+                      </div>
                       {comment.userId === currentUser.id && (
                         <div className="comment-actions">
-                          <button 
-                            className="edit-btn"
+                          <motion.button 
                             onClick={() => startEditing("comment", comment.id, comment.content, activePost.id)}
+                            whileHover={{ scale: 1.1 }}
+                            whileTap={{ scale: 0.9 }}
                           >
                             ✏️
-                          </button>
-                          <button 
-                            className="delete-btn"
+                          </motion.button>
+                          <motion.button 
                             onClick={() => deleteComment(activePost.id, comment.id)}
+                            whileHover={{ scale: 1.1 }}
+                            whileTap={{ scale: 0.9 }}
                           >
                             🗑️
-                          </button>
+                          </motion.button>
                         </div>
                       )}
                     </div>
                     
                     {editingItem.type === "comment" && editingItem.id === comment.id ? (
-                      <div className="edit-container">
+                      <div className="edit-zone">
                         <textarea
                           value={editingItem.content}
                           onChange={(e) => setEditingItem({...editingItem, content: e.target.value})}
-                          className="edit-textarea"
+                          className="edit-field"
                         />
-                        <div className="edit-actions">
-                          <button onClick={() => saveEdit(editingItem.content)} className="save-edit-btn">Save</button>
-                          <button onClick={cancelEditing} className="cancel-edit-btn">Cancel</button>
+                        <div className="edit-btns">
+                          <motion.button onClick={() => saveEdit(editingItem.content)} whileHover={{ scale: 1.05 }}>💾 Save</motion.button>
+                          <motion.button onClick={cancelEditing} whileHover={{ scale: 1.05 }}>❌ Cancel</motion.button>
                         </div>
                       </div>
                     ) : (
-                      <p className="comment-content">{comment.content}</p>
+                      <p className="comment-text">{comment.content}</p>
                     )}
                     
-                    {comment.image && (
-                      <div className="comment-image">
-                        <img src={comment.image} alt="Comment" />
+                    {comment.images && comment.images.length > 0 && (
+                      <div className="comment-images-grid">
+                        {comment.images.map((img, idx) => (
+                          <img key={idx} src={img} alt={`Comment image ${idx + 1}`} />
+                        ))}
                       </div>
                     )}
-                    <div className="comment-voting">
-                      <button 
-                        onClick={() => handleVote("comment", activePost.id, comment.id, null, "upvote")} 
-                        className={`upvote-btn ${getUserVoteStatus(comment) === 'upvoted' ? 'user-upvoted' : ''}`}
-                      >
-                        ▲ {getVoteCount(comment, 'upvotes')}
-                      </button>
-                      <button 
-                        onClick={() => handleVote("comment", activePost.id, comment.id, null, "downvote")} 
-                        className={`downvote-btn ${getUserVoteStatus(comment) === 'downvoted' ? 'user-downvoted' : ''}`}
-                      >
-                        ▼ {getVoteCount(comment, 'downvotes')}
-                      </button>
-                    </div>
+                    
+                    <motion.button 
+                      onClick={() => handleLike("comment", activePost.id, comment.id)} 
+                      className={`like-btn-small ${hasUserLiked(comment) ? 'liked' : ''}`}
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                    >
+                      {hasUserLiked(comment) ? '💚' : '🤍'} {getLikeCount(comment)}
+                    </motion.button>
 
-                    <div className="replies-section">
-                      <h4>Replies ({comment.replies.length})</h4>
-                      <div className="reply-form">
+                    <div className="replies-area">
+                      <h4>↩️ Replies ({comment.replies.length})</h4>
+                      
+                      <div className="reply-form-box">
                         <textarea
-                          placeholder="Add a reply..."
+                          placeholder="Write a reply..."
                           value={currentReply[`${activePost.id}-${comment.id}`]?.content || ""}
                           onChange={(e) => setCurrentReply({ 
                             ...currentReply, 
@@ -888,103 +966,137 @@ const Forum = () => {
                               content: e.target.value 
                             } 
                           })}
-                          className="reply-input"
+                          className="reply-field"
                         />
-                        <div className="image-upload-container">
-                          <label htmlFor={`reply-image-${activePost.id}-${comment.id}`} className="image-upload-label">
-                            📷 Upload Image
+                        <div className="images-upload-zone">
+                          <label htmlFor={`reply-imgs-${activePost.id}-${comment.id}`} className="upload-label">
+                            📷 Images
                           </label>
                           <input
-                            id={`reply-image-${activePost.id}-${comment.id}`}
+                            id={`reply-imgs-${activePost.id}-${comment.id}`}
                             type="file"
                             accept="image/*"
-                            onChange={(e) => handleImageUpload(e, "reply", activePost.id, comment.id)}
-                            className="image-upload-input"
+                            multiple
+                            onChange={(e) => handleMultipleImageUpload(e, "reply", activePost.id, comment.id)}
+                            className="upload-input"
                           />
-                          {currentReply[`${activePost.id}-${comment.id}`]?.image && (
-                            <div className="image-preview">
-                              <img src={currentReply[`${activePost.id}-${comment.id}`].image} alt="Preview" />
-                              <button 
-                                type="button" 
-                                className="remove-image-btn"
-                                onClick={() => removeImage("reply", activePost.id, comment.id)}
-                              >
-                                ✕ Remove
-                              </button>
+                          {currentReply[`${activePost.id}-${comment.id}`]?.images?.length > 0 && (
+                            <div className="images-preview-grid">
+                              {currentReply[`${activePost.id}-${comment.id}`].images.map((img, idx) => (
+                                <div key={idx} className="preview-item">
+                                  <img src={img} alt={`Preview ${idx + 1}`} />
+                                  <button 
+                                    type="button" 
+                                    className="remove-img-btn"
+                                    onClick={() => removeImage("reply", idx, activePost.id, comment.id)}
+                                  >
+                                    ✕
+                                  </button>
+                                </div>
+                              ))}
                             </div>
                           )}
                         </div>
-                        <button onClick={() => handleReplySubmit(activePost.id, comment.id)} className="submit-reply-btn">Post Reply</button>
+                        <motion.button 
+                          onClick={() => handleReplySubmit(activePost.id, comment.id)} 
+                          className="submit-reply-btn"
+                          whileHover={{ scale: 1.02 }}
+                          whileTap={{ scale: 0.98 }}
+                        >
+                          ↩️ Reply
+                        </motion.button>
                       </div>
 
-                      {comment.replies.map(reply => (
-                        <div key={reply.id} className="reply-card">
-                          <div className="reply-header">
-                            <span className="reply-author">{reply.author}</span>
-                            <span className="reply-date">{formatDate(reply.timestamp)}</span>
+                      {comment.replies.map((reply, rIdx) => (
+                        <motion.div
+                          key={reply.id}
+                          className="reply-item"
+                          initial={{ opacity: 0, x: -10 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: rIdx * 0.05 }}
+                        >
+                          <div className="reply-top">
+                            <div>
+                              <span className="reply-author">👤 {reply.author}</span>
+                              <span className="reply-date">📅 {formatDate(reply.timestamp)}</span>
+                            </div>
                             {reply.userId === currentUser.id && (
                               <div className="reply-actions">
-                                <button 
-                                  className="edit-btn"
+                                <motion.button 
                                   onClick={() => startEditing("reply", reply.id, reply.content, activePost.id, comment.id)}
+                                  whileHover={{ scale: 1.1 }}
                                 >
                                   ✏️
-                                </button>
-                                <button 
-                                  className="delete-btn"
+                                </motion.button>
+                                <motion.button 
                                   onClick={() => deleteReply(activePost.id, comment.id, reply.id)}
+                                  whileHover={{ scale: 1.1 }}
                                 >
                                   🗑️
-                                </button>
+                                </motion.button>
                               </div>
                             )}
                           </div>
                           
                           {editingItem.type === "reply" && editingItem.id === reply.id ? (
-                            <div className="edit-container">
+                            <div className="edit-zone">
                               <textarea
                                 value={editingItem.content}
                                 onChange={(e) => setEditingItem({...editingItem, content: e.target.value})}
-                                className="edit-textarea"
+                                className="edit-field"
                               />
-                              <div className="edit-actions">
-                                <button onClick={() => saveEdit(editingItem.content)} className="save-edit-btn">Save</button>
-                                <button onClick={cancelEditing} className="cancel-edit-btn">Cancel</button>
+                              <div className="edit-btns">
+                                <motion.button onClick={() => saveEdit(editingItem.content)} whileHover={{ scale: 1.05 }}>💾 Save</motion.button>
+                                <motion.button onClick={cancelEditing} whileHover={{ scale: 1.05 }}>❌ Cancel</motion.button>
                               </div>
                             </div>
                           ) : (
-                            <p className="reply-content">{reply.content}</p>
+                            <p className="reply-text">{reply.content}</p>
                           )}
                           
-                          {reply.image && (
-                            <div className="reply-image">
-                              <img src={reply.image} alt="Reply" />
+                          {reply.images && reply.images.length > 0 && (
+                            <div className="reply-images-grid">
+                              {reply.images.map((img, idx) => (
+                                <img key={idx} src={img} alt={`Reply image ${idx + 1}`} />
+                              ))}
                             </div>
                           )}
-                          <div className="reply-voting">
-                            <button 
-                              onClick={() => handleVote("reply", activePost.id, comment.id, reply.id, "upvote")} 
-                              className={`upvote-btn ${getUserVoteStatus(reply) === 'upvoted' ? 'user-upvoted' : ''}`}
-                            >
-                              ▲ {getVoteCount(reply, 'upvotes')}
-                            </button>
-                            <button 
-                              onClick={() => handleVote("reply", activePost.id, comment.id, reply.id, "downvote")} 
-                              className={`downvote-btn ${getUserVoteStatus(reply) === 'downvoted' ? 'user-downvoted' : ''}`}
-                            >
-                              ▼ {getVoteCount(reply, 'downvotes')}
-                            </button>
-                          </div>
-                        </div>
+                          
+                          <motion.button 
+                            onClick={() => handleLike("reply", activePost.id, comment.id, reply.id)} 
+                            className={`like-btn-small ${hasUserLiked(reply) ? 'liked' : ''}`}
+                            whileHover={{ scale: 1.05 }}
+                          >
+                            {hasUserLiked(reply) ? '💚' : '🤍'} {getLikeCount(reply)}
+                          </motion.button>
+                        </motion.div>
                       ))}
                     </div>
-                  </div>
+                  </motion.div>
                 ))}
-              </div>
+              </motion.div>
             </>
           )}
         </div>
       )}
+
+      <AnimatePresence>
+        {animatingAction && (
+          <motion.div
+            className="action-toast"
+            initial={{ opacity: 0, y: -50, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -50, scale: 0.9 }}
+            transition={{ duration: 0.3 }}
+          >
+            {animatingAction.type === 'create' && '✅ Post created successfully!'}
+            {animatingAction.type === 'update' && '✅ Updated successfully!'}
+            {animatingAction.type === 'delete' && '🗑️ Deleted successfully!'}
+            {animatingAction.type === 'comment' && '💬 Comment posted!'}
+            {animatingAction.type === 'reply' && '↩️ Reply posted!'}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

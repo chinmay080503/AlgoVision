@@ -12,18 +12,17 @@
   justify-content: space-between;
   align-items: center;
   flex-wrap: wrap;
-  margin-bottom: 0rem;
+  margin-bottom: 2rem;
 }
 
 .animate-heading {
   font-size: 2.5rem;
   color: var(--accent);
-  animation: slideDown 0.8s ease forwards;
-  opacity: 0;
 }
 
-/* ✅ Final Fixed Top-Right Button with Animation */
+/* Fixed Top-Right Button */
 .back-to-topic-button {
+  position: fixed;
   top: 2rem;
   right: 2rem;
   background: var(--accent);
@@ -34,29 +33,20 @@
   font-size: 0.95rem;
   font-weight: 500;
   cursor: pointer;
-  transition: background 0.3s ease, transform 0.2s ease;
+  transition: background 0.3s ease;
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.1);
-  opacity: 0;
-  animation: slideUp 1s ease-out forwards;
-  animation-delay: 0.6s;
   z-index: 1000;
 }
 
 .back-to-topic-button:hover {
   background: var(--accent-hover);
-  transform: translateY(-2px);
-}
-
-/* Optional: hide old button if not used anymore */
-.back-button {
-  display: none;
 }
 
 .algo-card-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
   gap: 2rem;
-  padding: 2rem 1rem;
+  padding: 0 1rem;
 }
 
 .algo-card {
@@ -66,55 +56,62 @@
   border-radius: 12px;
   cursor: pointer;
   text-align: center;
-  transform: translateY(20px);
-  opacity: 0;
-  transition: all 0.4s ease;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+  position: relative;
+  overflow: hidden;
+  perspective: 1000px;
+  transform-style: preserve-3d;
 }
 
-.algo-card:hover {
-  transform: translateY(-6px) scale(1.03);
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.15);
+.dark .algo-card {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+}
+
+.algo-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(0, 78, 146, 0.1), transparent);
+  transition: left 0.5s ease;
+}
+
+.algo-card:hover::before {
+  left: 100%;
 }
 
 .dark .algo-card:hover {
-  box-shadow: 0 12px 32px rgba(0, 229, 255, 0.15);
+  box-shadow: 0 12px 32px rgba(0, 229, 255, 0.2);
+  border-color: var(--accent);
 }
 
-.algo-card.fade-in {
-  opacity: 1;
-  transform: translateY(0);
+.algo-card h3 {
+  font-size: 1.3rem;
+  color: var(--accent);
+  margin-bottom: 0.5rem;
+  position: relative;
+  z-index: 1;
 }
 
-/* Heading Animation */
-@keyframes slideDown {
-  from {
-    opacity: 0;
-    transform: translateY(-30px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+.algo-card p {
+  color: var(--text);
+  font-size: 0.95rem;
+  position: relative;
+  z-index: 1;
 }
 
-/* Back Button Slide-Up Animation */
-@keyframes slideUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* ✅ Mobile Responsiveness */
+/* Mobile Responsiveness */
 @media (max-width: 600px) {
+  .quiz-topic-page {
+    padding: 1rem;
+    padding-top: 4rem;
+  }
+
   .back-to-topic-button {
-    top: 0.5rem;
-    right: 0.5rem;
+    top: 1rem;
+    right: 1rem;
     padding: 0.6rem 1rem;
     font-size: 0.85rem;
   }

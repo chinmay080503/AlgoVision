@@ -248,13 +248,6 @@ const SelectionSort = () => {
     <div className="selection-sort-container">
       <div className="max-width">
         <div className="header">
-          <button 
-            className="back-button"
-            onClick={() => console.log('Navigate back')}
-          >
-            <ChevronLeft size={16} />
-            Back to Learn
-          </button>
           <h1 className="title">Selection Sort Algorithm</h1>
           <div className="spacer"></div>
         </div>

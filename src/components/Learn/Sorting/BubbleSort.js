@@ -188,9 +188,6 @@ const BubbleSort = () => {
     <div className="bubble-sort-container">
       <div className="max-width">
         <div className="header">
-          <button className="back-button" onClick={() => navigate("/learn")}>
-            Back to Learn
-          </button>
           <h1 className="title">Bubble Sort Algorithm</h1>
           <div className="spacer" />
         </div>
