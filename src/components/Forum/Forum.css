@@ -809,6 +809,76 @@
   z-index: 2000;
 }
 
+/* ── Validation Modal ──────────────────────────────────────────────────────── */
+
+.validation-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 1rem;
+}
+
+.validation-modal {
+  background: var(--card, #ffffff);
+  border: 1px solid var(--card-border, #dcdcdc);
+  border-radius: 16px;
+  padding: 2.5rem 2rem 2rem;
+  max-width: 420px;
+  width: 100%;
+  text-align: center;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+}
+
+.forum-wrapper.dark .validation-modal {
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+
+.validation-icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  line-height: 1;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.15));
+}
+
+.validation-title {
+  color: var(--error, #f44336);
+  font-size: 1.4rem;
+  font-weight: 700;
+  margin: 0 0 0.75rem;
+}
+
+.validation-message {
+  color: var(--text, #1c1c1c);
+  font-size: 1rem;
+  line-height: 1.6;
+  margin: 0 0 1.75rem;
+  opacity: 0.9;
+}
+
+.validation-close-btn {
+  background: var(--accent, #004e92);
+  color: var(--btn-text, #ffffff);
+  border: none;
+  padding: 0.85rem 2.5rem;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.25s ease, transform 0.15s ease;
+  font-family: inherit;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);
+}
+
+.validation-close-btn:hover {
+  background: var(--accent-hover, #003366);
+}
+
 /* Responsive */
 @media (max-width: 900px) {
   .forum-wrapper {
@@ -865,6 +935,10 @@
   
   .forum-wrapper .replies-area {
     padding-left: 1rem;
+  }
+
+  .validation-modal {
+    padding: 2rem 1.5rem 1.5rem;
   }
 }
 
