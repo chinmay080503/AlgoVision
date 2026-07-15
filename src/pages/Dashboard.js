@@ -8,6 +8,36 @@ const Dashboard = () => {
   const [username, setUsername] = useState("");
   const [userLevel, setUserLevel] = useState(1);
   const [levelTitle, setLevelTitle] = useState("Novice");
+  const [isDarkMode, setIsDarkMode] = useState(false);
+
+  useEffect(() => {
+    const checkDarkMode = () => {
+      const bodyHasDark = document.body.classList.contains('dark');
+      const htmlHasDark = document.documentElement.classList.contains('dark');
+      const savedTheme = localStorage.getItem('theme');
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      const isDark = bodyHasDark || htmlHasDark || savedTheme === 'dark' || (!savedTheme && prefersDark);
+      setIsDarkMode(isDark);
+    };
+
+    checkDarkMode();
+
+    const bodyObserver = new MutationObserver(checkDarkMode);
+    bodyObserver.observe(document.body, { attributes: true, attributeFilter: ['class'] });
+
+    const htmlObserver = new MutationObserver(checkDarkMode);
+    htmlObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+
+    window.addEventListener('storage', checkDarkMode);
+    window.addEventListener('themeChange', checkDarkMode);
+
+    return () => {
+      bodyObserver.disconnect();
+      htmlObserver.disconnect();
+      window.removeEventListener('storage', checkDarkMode);
+      window.removeEventListener('themeChange', checkDarkMode);
+    };
+  }, []);
 
   const calculateXPForQuiz = (score, total, timeTaken) => {
     const baseXP = score * 10;
@@ -154,20 +184,20 @@ const Dashboard = () => {
   ];
 
   return (
-    <div className="dashboard-container">
+    <div className={`dashboard-container ${isDarkMode ? 'dark' : ''}`}>
       <div className="dashboard-header">
         <div className="header-left">
-          <motion.h1 
+          <motion.h1
             className="dashboard-heading"
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, type: "spring", stiffness: 100 }}
           >
-            Algorithm Dashboard
+            Dashboard
           </motion.h1>
           {username && (
             <>
-              <motion.div 
+              <motion.div
                 className="welcome-message"
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
@@ -175,13 +205,13 @@ const Dashboard = () => {
               >
                 Welcome, <span className="username">{username}</span>!
               </motion.div>
-              <motion.div 
+              <motion.div
                 className="level-display"
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.3, duration: 0.5 }}
               >
-                <motion.span 
+                <motion.span
                   className={`level-badge-dashboard ${levelTitle.toLowerCase()}`}
                   whileHover={{ scale: 1.05 }}
                   transition={{ type: "spring", stiffness: 300 }}
@@ -193,15 +223,15 @@ const Dashboard = () => {
             </>
           )}
         </div>
-        
+
         <div className="header-right">
-          <motion.button 
-            className="dashboard-back-button" 
+          <motion.button
+            className="dashboard-back-button"
             onClick={() => navigate("/")}
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4, duration: 0.5 }}
-            whileHover={{ 
+            whileHover={{
               scale: 1.05,
               y: -2,
               transition: { duration: 0.2 }

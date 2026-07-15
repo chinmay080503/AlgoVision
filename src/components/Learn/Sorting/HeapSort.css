@@ -503,3 +503,67 @@
     transform: translateY(-2px);
   }
 }
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .heap-sort-container .complexity-grid,
+  .heap-sort-container .status-grid,
+  .heap-sort-container .legend-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .heap-sort-container .heap-level {
+    gap: 12px;
+  }
+  
+  .heap-sort-container .heap-node {
+    width: 32px;
+    height: 32px;
+    font-size: 12px;
+  }
+  
+  .heap-sort-container .code-visualization-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .heap-sort-container {
+    padding: 16px;
+  }
+  
+  .heap-sort-container .title {
+    font-size: 22px;
+  }
+  
+  .heap-sort-container .card-title {
+    font-size: 22px;
+  }
+  
+  .heap-sort-container .card-content {
+    font-size: 18px;
+  }
+  
+  .heap-sort-container .bar {
+    width: 28px;
+  }
+  
+  .heap-sort-container .heap-level {
+    gap: 8px;
+  }
+  
+  .heap-sort-container .heap-node {
+    width: 28px;
+    height: 28px;
+    font-size: 10px;
+  }
+  
+  .heap-sort-container .controls-container {
+    flex-direction: column;
+  }
+  
+  .heap-sort-container .control-button {
+    width: 100%;
+    justify-content: center;
+  }
+}

@@ -1,13 +1,23 @@
 // LoginPage.js
-import React, { useState } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import "./LoginPage.css";
 
 const LoginPage = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [formData, setFormData] = useState({ username: '', email: '', password: '' });
+  const [toast, setToast] = useState({ show: false, message: '', type: 'error' });
   const navigate = useNavigate();
+
+  useEffect(() => {
+    setFormData({ username: '', email: '', password: '' });
+  }, [isLogin]);
+
+  const showToast = useCallback((message, type = 'error') => {
+    setToast({ show: true, message, type });
+    setTimeout(() => setToast({ show: false, message: '', type: 'error' }), 3000);
+  }, []);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -24,21 +34,23 @@ const LoginPage = () => {
       if (user) {
         localStorage.setItem('currentUser', JSON.stringify(user));
         window.dispatchEvent(new Event('userLoggedIn'));
-        navigate('/dashboard');
+        showToast('Login successful! Redirecting...', 'success');
+        setTimeout(() => navigate('/dashboard'), 1200);
       } else {
-        alert('Invalid credentials');
+        showToast('Invalid credentials');
       }
     } else {
       const users = JSON.parse(localStorage.getItem('users') || '[]');
-      if (users.some(u => u.username === formData.username)) { alert('Username already exists'); return; }
-      if (users.some(u => u.email === formData.email)) { alert('Email already registered'); return; }
+      if (users.some(u => u.username === formData.username)) { showToast('Username already exists'); return; }
+      if (users.some(u => u.email === formData.email)) { showToast('Email already registered'); return; }
       const newUser = { id: Date.now(), ...formData, joinDate: new Date().toISOString() };
       users.push(newUser);
       localStorage.setItem('users', JSON.stringify(users));
       localStorage.setItem('currentUser', JSON.stringify(newUser));
       localStorage.setItem('usersJson', JSON.stringify(users));
       window.dispatchEvent(new Event('userLoggedIn'));
-      navigate('/dashboard');
+      showToast('Account created! Redirecting...', 'success');
+      setTimeout(() => navigate('/dashboard'), 1200);
     }
   };
 
@@ -55,6 +67,21 @@ const LoginPage = () => {
 
   return (
     <div className="login-container">
+      <AnimatePresence>
+        {toast.show && (
+          <motion.div
+            className={`login-toast login-toast-${toast.type}`}
+            initial={{ opacity: 0, x: 50, y: 0 }}
+            animate={{ opacity: 1, x: 0, y: 0 }}
+            exit={{ opacity: 0, x: 50 }}
+            transition={{ duration: 0.3 }}
+          >
+            <span>{toast.message}</span>
+            <button className="toast-close" onClick={() => setToast({ show: false, message: '', type: 'error' })}>×</button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <motion.nav 
         className="login-nav"
         initial={{ opacity: 0, y: -20 }}

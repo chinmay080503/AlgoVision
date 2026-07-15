@@ -382,3 +382,46 @@ button:active:not(:disabled) {
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: 32px;
 }
+
+@media (max-width: 768px) {
+  .bubble-sort-container .complexity-grid,
+  .bubble-sort-container .status-grid,
+  .bubble-sort-container .legend-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .bubble-sort-container .code-visualization-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .bubble-sort-container {
+    padding: 16px;
+  }
+  
+  .bubble-sort-container .title {
+    font-size: 22px;
+  }
+  
+  .bubble-sort-container .card-title {
+    font-size: 22px;
+  }
+  
+  .bubble-sort-container .card-content {
+    font-size: 18px;
+  }
+  
+  .bubble-sort-container .bar {
+    width: 28px;
+  }
+  
+  .bubble-sort-container .controls-container {
+    flex-direction: column;
+  }
+  
+  .bubble-sort-container .control-button {
+    width: 100%;
+    justify-content: center;
+  }
+}

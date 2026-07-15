@@ -473,3 +473,52 @@
     transform: translateY(-2px);
   }
 }
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .counting-sort-container .complexity-grid,
+  .counting-sort-container .status-grid,
+  .counting-sort-container .legend-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .counting-sort-container .code-visualization-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .counting-sort-container {
+    padding: 16px;
+  }
+  
+  .counting-sort-container .title {
+    font-size: 22px;
+  }
+  
+  .counting-sort-container .card-title {
+    font-size: 22px;
+  }
+  
+  .counting-sort-container .card-content {
+    font-size: 18px;
+  }
+  
+  .counting-sort-container .bar {
+    width: 24px;
+  }
+  
+  .counting-sort-container .count-element {
+    width: 32px;
+    height: 48px;
+  }
+  
+  .counting-sort-container .controls-container {
+    flex-direction: column;
+  }
+  
+  .counting-sort-container .control-button {
+    width: 100%;
+    justify-content: center;
+  }
+}

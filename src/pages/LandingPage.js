@@ -208,11 +208,11 @@ const LandingPage = () => {
 
       <nav className="landing-nav">
         <div className="landing-logo">
-          <img src={logo} alt="" height={100} width={150} />
+          <img src={logo} alt="" className="landing-logo-img" />
         </div>
         <div className="nav-buttons">
           <button className="theme-toggle-btn" onClick={toggleTheme}>
-            {isDark ? "☀️ Light Mode" : "🌙 Dark Mode"}
+            {isDark ? " Light Mode" : " Dark Mode"}
           </button>
           <button className="login-signup-btn" onClick={handleLoginSignup}>
             Login/Signup

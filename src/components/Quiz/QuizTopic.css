@@ -102,21 +102,67 @@
   z-index: 1;
 }
 
-/* Mobile Responsiveness */
-@media (max-width: 600px) {
+/* Responsive */
+@media (max-width: 768px) {
   .quiz-topic-page {
-    padding: 1rem;
+    padding: 1.5rem;
     padding-top: 4rem;
   }
 
+  .quiz-topic-header {
+    margin-bottom: 1.5rem;
+  }
+
+  .animate-heading {
+    font-size: 2rem;
+  }
+
+  .algo-card-grid {
+    gap: 1.5rem;
+  }
+
+  .algo-card {
+    padding: 1.5rem;
+  }
+
+  .algo-card h3 {
+    font-size: 1.15rem;
+  }
+}
+
+@media (max-width: 600px) {
   .back-to-topic-button {
     top: 1rem;
     right: 1rem;
     padding: 0.6rem 1rem;
     font-size: 0.85rem;
   }
+}
+
+@media (max-width: 480px) {
+  .quiz-topic-page {
+    padding: 1rem;
+    padding-top: 3.5rem;
+  }
 
   .animate-heading {
-    font-size: 2rem;
+    font-size: 1.5rem;
+  }
+
+  .algo-card-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .algo-card {
+    padding: 1.2rem;
+  }
+
+  .algo-card h3 {
+    font-size: 1.05rem;
+  }
+
+  .algo-card p {
+    font-size: 0.85rem;
   }
 }

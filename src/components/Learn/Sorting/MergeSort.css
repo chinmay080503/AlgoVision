@@ -478,3 +478,57 @@
   font-weight: bold;
   border-left: 4px solid #f59e0b;
 }
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .merge-sort-container .complexity-grid,
+  .merge-sort-container .status-grid,
+  .merge-sort-container .legend-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .merge-sort-container .temp-arrays-container {
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .merge-sort-container .code-visualization-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .merge-sort-container {
+    padding: 16px;
+  }
+  
+  .merge-sort-container .title {
+    font-size: 22px;
+  }
+  
+  .merge-sort-container .card-title {
+    font-size: 22px;
+  }
+  
+  .merge-sort-container .card-content {
+    font-size: 18px;
+  }
+  
+  .merge-sort-container .bar {
+    width: 28px;
+  }
+  
+  .merge-sort-container .temp-value {
+    width: 32px;
+    height: 32px;
+  }
+  
+  .merge-sort-container .controls-container {
+    flex-direction: column;
+  }
+  
+  .merge-sort-container .control-button {
+    width: 100%;
+    justify-content: center;
+  }
+}

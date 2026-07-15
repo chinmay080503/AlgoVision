@@ -475,3 +475,46 @@ button:active:not(:disabled) {
   font-weight: bold;
   border-left: 4px solid #f59e0b;
 }
+
+@media (max-width: 768px) {
+  .selection-sort-container .complexity-grid,
+  .selection-sort-container .status-grid,
+  .selection-sort-container .legend-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .selection-sort-container .code-visualization-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .selection-sort-container {
+    padding: 16px;
+  }
+  
+  .selection-sort-container .title {
+    font-size: 22px;
+  }
+  
+  .selection-sort-container .card-title {
+    font-size: 22px;
+  }
+  
+  .selection-sort-container .card-content {
+    font-size: 18px;
+  }
+  
+  .selection-sort-container .bar {
+    width: 28px;
+  }
+  
+  .selection-sort-container .controls-container {
+    flex-direction: column;
+  }
+  
+  .selection-sort-container .control-button {
+    width: 100%;
+    justify-content: center;
+  }
+}

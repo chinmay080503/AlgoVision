@@ -319,25 +319,62 @@
 @media (max-width: 480px) {
   .quiz-wrapper {
     padding: 1rem;
+    margin: 0.5rem;
   }
 
   .quiz-wrapper .quiz-top-bar h2 {
-    font-size: 1.5rem;
+    font-size: 1.3rem;
+  }
+
+  .quiz-wrapper .quiz-control-group {
+    gap: 0.5rem;
+  }
+
+  .quiz-wrapper button {
+    padding: 0.5rem 0.9rem;
+    font-size: 0.85rem;
   }
 
   .quiz-wrapper .quiz-question-box {
     padding: 1rem;
   }
 
+  .quiz-wrapper .quiz-question-box h3 {
+    font-size: 1.1rem;
+  }
+
   .quiz-wrapper .quiz-choice {
-    padding: 0.8rem;
+    padding: 0.75rem;
+    font-size: 0.9rem;
   }
-  
+
+  .quiz-wrapper .quiz-nav-area button {
+    padding: 0.6rem 1.2rem;
+    font-size: 0.9rem;
+  }
+
   .quiz-wrapper .quiz-score-card h3 {
-    font-size: 1.3rem;
+    font-size: 1.2rem;
   }
-  
+
   .quiz-wrapper .quiz-score-card p {
-    font-size: 1rem;
+    font-size: 0.95rem;
+  }
+
+  .quiz-wrapper .quiz-answer-card {
+    padding: 1rem;
+  }
+
+  .quiz-wrapper .quiz-answer-card p {
+    font-size: 0.9rem;
+  }
+
+  .quiz-wrapper .quiz-time-display {
+    padding: 0.4rem 0.8rem;
+    font-size: 0.85rem;
+  }
+
+  .quiz-wrapper .quiz-results-area {
+    padding: 1rem;
   }
 }

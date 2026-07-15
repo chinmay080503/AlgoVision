@@ -533,3 +533,55 @@
     transform: translateY(-2px);
   }
 }
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .shell-sort-container .complexity-grid,
+  .shell-sort-container .status-grid,
+  .shell-sort-container .legend-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .shell-sort-container .subarrays-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .shell-sort-container .code-visualization-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .shell-sort-container {
+    padding: 16px;
+  }
+  
+  .shell-sort-container .title {
+    font-size: 22px;
+  }
+  
+  .shell-sort-container .card-title {
+    font-size: 22px;
+  }
+  
+  .shell-sort-container .card-content {
+    font-size: 18px;
+  }
+  
+  .shell-sort-container .bar {
+    width: 22px;
+  }
+  
+  .shell-sort-container .subarrays-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .shell-sort-container .controls-container {
+    flex-direction: column;
+  }
+  
+  .shell-sort-container .control-button {
+    width: 100%;
+    justify-content: center;
+  }
+}

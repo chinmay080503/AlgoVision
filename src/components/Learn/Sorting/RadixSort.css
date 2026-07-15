@@ -485,3 +485,55 @@
     transform: translateY(-2px);
   }
 }
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .radix-sort-container .complexity-grid,
+  .radix-sort-container .status-grid,
+  .radix-sort-container .legend-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .radix-sort-container .buckets-container {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  
+  .radix-sort-container .code-visualization-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .radix-sort-container {
+    padding: 16px;
+  }
+  
+  .radix-sort-container .title {
+    font-size: 22px;
+  }
+  
+  .radix-sort-container .card-title {
+    font-size: 22px;
+  }
+  
+  .radix-sort-container .card-content {
+    font-size: 18px;
+  }
+  
+  .radix-sort-container .bar {
+    width: 28px;
+  }
+  
+  .radix-sort-container .buckets-container {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .radix-sort-container .controls-container {
+    flex-direction: column;
+  }
+  
+  .radix-sort-container .control-button {
+    width: 100%;
+    justify-content: center;
+  }
+}
